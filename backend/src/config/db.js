@@ -6,6 +6,7 @@ import { env } from "./env.js"
 // otherwise, insert MONGO_DB_NAME before any query string.
 function buildMongoUri(baseUrl, dbName) {
   if (!baseUrl) throw new Error("MONGO_URL missing")
+
   const [baseNoQuery, query = ""] = String(baseUrl).split("?")
   const hasDbPath = /^(mongodb(?:\+srv)?:\/\/[^/]+)\/([^/?#]+)/i.test(
     baseNoQuery
@@ -19,8 +20,21 @@ function buildMongoUri(baseUrl, dbName) {
     : `${cleanedBase}/${dbName}`
 }
 
+function redactMongoUri(uri) {
+  return uri.replace(/(mongodb(?:\+srv)?:\/\/[^:\/@]+:)[^@]+(@)/, "$1***$2")
+}
+
 export const connectDb = async () => {
   const uri = buildMongoUri(env.MONGO_URL, env.MONGO_DB_NAME)
-  await mongoose.connect(uri)
-  console.log("[db] connected")
+  const redacted = redactMongoUri(uri)
+  try {
+    await mongoose.connect(uri)
+    console.log(`[db] connected -> ${redacted}`)
+  } catch (err) {
+    console.error("[db] connection error", {
+      message: err.message,
+      uri: redacted,
+    })
+    throw err
+  }
 }

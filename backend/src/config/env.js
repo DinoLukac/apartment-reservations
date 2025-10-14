@@ -16,7 +16,8 @@ export const env = {
     process.env.BASE_URL ?? `http://localhost:${process.env.PORT ?? 4000}`,
   TIMEZONE: process.env.TIMEZONE ?? "Europe/Podgorica",
 
-  MONGO_URL: process.env.MONGO_URL,
+  // Support both legacy MONGO_URL and common MONGODB_URI naming (Render / other hosts)
+  MONGO_URL: process.env.MONGODB_URI || process.env.MONGO_URL,
   MONGO_DB_NAME: process.env.MONGO_DB_NAME ?? "apartmani",
 
   JWT_SECRET: process.env.JWT_SECRET,
