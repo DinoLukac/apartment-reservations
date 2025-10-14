@@ -20,6 +20,9 @@ if (env.SECURITY_HEADERS === "enabled") {
   app.use(helmet())
 }
 
+// Behind Render's proxy so that req.secure is set and Secure cookies work
+app.set("trust proxy", 1)
+
 app.use(morgan("dev"))
 app.use(cors(corsOptions))
 // preflight za sve rute
@@ -30,6 +33,12 @@ app.use(cookieParser())
 app.use(express.urlencoded({ extended: true, limit: "2mb" }))
 
 app.get("/api/health", (_req, res) => res.json({ ok: true, ts: Date.now() }))
+
+// Friendly root handler for backend root URL (Render opens this by default)
+app.get("/", (_req, res) => {
+  if (env.FRONTEND_URL) return res.redirect(env.FRONTEND_URL)
+  return res.status(200).send("API is running. See /api/health")
+})
 
 app.use("/api/auth", authRoutes)
 app.use("/api/auth/oauth", oauthRoutes)
@@ -42,6 +51,13 @@ app.use(csrfProtect)
 app.use("/api/properties", propertyRoutes)
 app.use("/api/uploads", uploadsRoutes)
 app.use("/api/owner/reservations", ownerReservationsRoutes)
+
+// Catch-all for non-API GET routes: place BEFORE error handler
+app.get(/^\/(?!api(\/|$)).*$/, (_req, res) => {
+  if (env.FRONTEND_URL) return res.redirect(env.FRONTEND_URL)
+  return res.status(404).send("Not Found. Frontend not configured.")
+})
+
 app.use(errorHandler)
 
 export default app
