@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken"
 import { verifyGoogleIdToken } from "../utils/jwks.js"
 import { socialLogin } from "../services/auth-service.js"
 
+const isDebug = (env.LOG_LEVEL || "").toLowerCase() === "debug"
+
 const isAllowedRedirect = (u) => {
   try {
     const url = new URL(u)
@@ -53,7 +55,13 @@ export const googleStart = async (req, res) => {
     prompt: "consent", // osiguraj ekran (dev)
     access_type: "offline", // nije neophodno, ali ok
   })
-
+  if (isDebug) {
+    console.log("[oauth/google] start", {
+      dest,
+      redirect_uri: env.GOOGLE_REDIRECT,
+      client_id_tail: env.GOOGLE_CLIENT_ID?.slice(-8) || null,
+    })
+  }
   res.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
   )
@@ -83,7 +91,17 @@ export const googleCallback = async (req, res) => {
     body,
   })
   const tok = await tokenResp.json()
-  if (!tok.id_token) return res.status(400).send("No id_token")
+  if (!tok.id_token) {
+    if (isDebug) {
+      console.warn("[oauth/google] token exchange failed", {
+        status: tokenResp.status,
+        error: tok?.error || null,
+        error_description: tok?.error_description || null,
+        redirect_uri: env.GOOGLE_REDIRECT,
+      })
+    }
+    return res.status(400).send("OAuth token exchange failed")
+  }
 
   // JOSE + JWKS verifikacija (iss, aud, potpis, a zatim i nonce)
   await verifyGoogleIdToken(tok.id_token, {
