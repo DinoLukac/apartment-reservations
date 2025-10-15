@@ -1,8 +1,20 @@
 import nodemailer from "nodemailer"
 import { env } from "../config/env.js"
 import dns from "dns/promises"
+import sg from "@sendgrid/mail"
 
 let mailer
+let useSendgrid = false
+
+if (process.env.SENDGRID_API_KEY) {
+  try {
+    sg.setApiKey(process.env.SENDGRID_API_KEY)
+    useSendgrid = true
+    console.log("[mail] SendGrid enabled")
+  } catch (e) {
+    console.warn("[mail] SendGrid init failed:", e?.message || String(e))
+  }
+}
 
 if (env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS) {
   // Configure timeouts to avoid long hangs on PaaS when SMTP is unreachable
@@ -74,15 +86,64 @@ function withTimeout(promise, ms) {
   })
 }
 
-export const sendMail = async ({ to, subject, html, replyTo }) => {
+function guessMimeFromFilename(name = "") {
+  const lower = name.toLowerCase()
+  if (lower.endsWith(".ics")) return "text/calendar"
+  if (lower.endsWith(".pdf")) return "application/pdf"
+  if (lower.endsWith(".png")) return "image/png"
+  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg"
+  if (lower.endsWith(".txt")) return "text/plain"
+  if (lower.endsWith(".html") || lower.endsWith(".htm")) return "text/html"
+  return "application/octet-stream"
+}
+
+export const sendMail = async ({
+  to,
+  subject,
+  html,
+  text,
+  replyTo,
+  attachments,
+}) => {
   const overallTimeout = Number(process.env.MAIL_SEND_TIMEOUT_MS ?? 15000)
+  if (useSendgrid) {
+    // Send via SendGrid HTTP API (reliable on PaaS)
+    const msg = {
+      to,
+      from: env.MAIL_FROM,
+      subject,
+      html,
+      text,
+      reply_to: replyTo ?? env.MAIL_REPLY_TO,
+      attachments: Array.isArray(attachments)
+        ? attachments.map((att) => ({
+            filename: att.filename,
+            type:
+              att.contentType ||
+              att.type ||
+              guessMimeFromFilename(att.filename),
+            disposition: att.disposition || "attachment",
+            content:
+              typeof att.content === "string"
+                ? Buffer.from(att.content).toString("base64")
+                : Buffer.isBuffer(att.content)
+                ? att.content.toString("base64")
+                : Buffer.from(String(att.content ?? "")).toString("base64"),
+          }))
+        : undefined,
+    }
+    return withTimeout(sg.send(msg), overallTimeout)
+  }
+  // Fallback to SMTP
   return withTimeout(
     mailer.sendMail({
       from: env.MAIL_FROM,
       to,
       subject,
       html,
+      text,
       replyTo: replyTo ?? env.MAIL_REPLY_TO,
+      attachments,
     }),
     overallTimeout
   )

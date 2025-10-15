@@ -1,4 +1,4 @@
-import transporter from "./transporter.js"
+import { sendMail } from "../utils/email.js"
 
 function icsFromReservation(r) {
   const dt = (d) =>
@@ -23,16 +23,21 @@ export async function sendReservationConfirmation(r) {
   const ics = icsFromReservation(r)
   const to = r.guest.email
 
-  await transporter.sendMail({
+  await sendMail({
     to,
-    from: process.env.MAIL_FROM,
     subject: `Potvrda rezervacije ${r.code}`,
     text: `Hvala! Rezervacija ${
       r.code
     }\nDatumi: ${r.checkIn.toDateString()}–${r.checkOut.toDateString()}\nUkupno: ${
       r.total
     } ${r.currency}`,
-    attachments: [{ filename: `rezervacija-${r.code}.ics`, content: ics }],
+    attachments: [
+      {
+        filename: `rezervacija-${r.code}.ics`,
+        content: ics,
+        contentType: "text/calendar",
+      },
+    ],
   })
 }
 
