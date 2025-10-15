@@ -128,6 +128,14 @@ export default function SocialOAuthButtons({ onSuccess, onError }){
         {err && <div className="form-message" role="alert">{err}</div>}
         {GOOGLE_CLIENT_ID ? <div ref={gContainerRef} aria-label="Google Sign-In" /> : (
           <a className="btn btn-google" href={`${api}/auth/oauth/google/start?redirect=${encodeURIComponent(window.location.origin + '/oauth/callback')}`}>
+            <span className="icon" aria-hidden="true">
+              <svg viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg" width="18" height="18" focusable="false">
+                <path fill="#4285F4" d="M533.5 278.4c0-18.5-1.6-37-4.9-54.8H272v103.9h147c-6.3 34.1-25.4 63-54.2 82.3l87.5 67.9c51.1-47.1 80.2-116.6 80.2-199.3z"/>
+                <path fill="#34A853" d="M272 544.3c73 0 134.2-24.2 178.9-65.6l-87.5-67.9c-24.3 16.3-55.4 25.9-91.4 25.9-70 0-129.4-47.1-150.6-110.5l-91 70.1c39.4 78.1 120 148 241.6 148z"/>
+                <path fill="#FBBC05" d="M121.4 326.2c-10.1-29.7-10.1-61.7 0-91.4l-91-70.1c-39.7 79.4-39.7 172.2 0 251.5l91-70z"/>
+                <path fill="#EA4335" d="M272 107.3c39.6-.6 77.7 14.1 106.6 41.4l79.7-79.7C414.7 25.4 345.6 0 272 0 150.4 0 69.8 69.9 30.3 164.7l91 70.1C142.4 171.3 202 107.3 272 107.3z"/>
+              </svg>
+            </span>
             <span className="label">Prijava preko Google</span>
           </a>
         )}
@@ -144,6 +152,14 @@ export default function SocialOAuthButtons({ onSuccess, onError }){
   return (
     <div className="social-login">
       <a className="btn btn-google" href={`${api}/auth/oauth/google/start?redirect=${encodeURIComponent(window.location.origin + '/oauth/callback')}`}>
+        <span className="icon" aria-hidden="true">
+          <svg viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg" width="18" height="18" focusable="false">
+            <path fill="#4285F4" d="M533.5 278.4c0-18.5-1.6-37-4.9-54.8H272v103.9h147c-6.3 34.1-25.4 63-54.2 82.3l87.5 67.9c51.1-47.1 80.2-116.6 80.2-199.3z"/>
+            <path fill="#34A853" d="M272 544.3c73 0 134.2-24.2 178.9-65.6l-87.5-67.9c-24.3 16.3-55.4 25.9-91.4 25.9-70 0-129.4-47.1-150.6-110.5l-91 70.1c39.4 78.1 120 148 241.6 148z"/>
+            <path fill="#FBBC05" d="M121.4 326.2c-10.1-29.7-10.1-61.7 0-91.4l-91-70.1c-39.7 79.4-39.7 172.2 0 251.5l91-70z"/>
+            <path fill="#EA4335" d="M272 107.3c39.6-.6 77.7 14.1 106.6 41.4l79.7-79.7C414.7 25.4 345.6 0 272 0 150.4 0 69.8 69.9 30.3 164.7l91 70.1C142.4 171.3 202 107.3 272 107.3z"/>
+          </svg>
+        </span>
         <span className="label">Prijava preko Google</span>
       </a>
       <a className="btn btn-facebook" href={`${api}/auth/oauth/facebook/start?redirect=${encodeURIComponent(window.location.origin + '/oauth/callback')}`}>
