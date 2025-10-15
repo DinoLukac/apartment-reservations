@@ -1,10 +1,12 @@
 import { env } from "../config/env.js"
+import nodeFetch from "node-fetch"
 import { makeState, verifyState, randomToken } from "../utils/crypto.js"
 import jwt from "jsonwebtoken"
 import { verifyGoogleIdToken } from "../utils/jwks.js"
 import { socialLogin } from "../services/auth-service.js"
 
 const isDebug = (env.LOG_LEVEL || "").toLowerCase() === "debug"
+const fetchHttp = typeof fetch === "function" ? fetch : nodeFetch
 
 const isAllowedRedirect = (u) => {
   try {
@@ -85,7 +87,7 @@ export const googleCallback = async (req, res) => {
     grant_type: "authorization_code",
   })
 
-  const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
+  const tokenResp = await fetchHttp("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
@@ -110,7 +112,7 @@ export const googleCallback = async (req, res) => {
   })
 
   // Userinfo (sigurnije iz userinfo endpointa)
-  const uiResp = await fetch(
+  const uiResp = await fetchHttp(
     "https://openidconnect.googleapis.com/v1/userinfo",
     {
       headers: { Authorization: `Bearer ${tok.access_token}` },
