@@ -42,7 +42,10 @@ export const getVerifyEmail = async (req, res, next) => {
     const { token, email } = req.query
     await verifyEmail({ token, email })
 
-    const user = await User.findOne({ email })
+    const emailNorm = String(email || "")
+      .trim()
+      .toLowerCase()
+    const user = await User.findOne({ email: emailNorm })
     if (!user) return res.status(400).send("User not found")
     const ua = req.headers["user-agent"] || ""
     const ip = req.ip
@@ -172,6 +175,8 @@ export const postResetPassword = async (req, res, next) => {
 export const postResendVerify = async (req, res, next) => {
   try {
     const email = String(req.body?.email || "")
+      .trim()
+      .toLowerCase()
     if (!email)
       throw Object.assign(new Error("Email je obavezan"), { status: 400 })
     await resendVerifyEmail({ email })

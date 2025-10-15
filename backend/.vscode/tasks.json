@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start MongoDB via Docker",
+			"type": "shell",
+			"command": "docker run --name mongo-local -p 127.0.0.1:27017:27017 -v mongo-data:/data/db -d mongo:6-jammy",
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}

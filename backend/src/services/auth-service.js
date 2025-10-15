@@ -34,6 +34,9 @@ export const issueTokensForUser = async ({ user, ua, ip }) => {
 }
 
 export const registerUser = async ({ email, password, name }) => {
+  email = String(email || "")
+    .trim()
+    .toLowerCase()
   const exists = await User.findOne({ email })
   if (exists) throw Object.assign(new Error("Email je zauzet"), { status: 409 })
 
@@ -74,6 +77,9 @@ export const registerUser = async ({ email, password, name }) => {
 }
 
 export const verifyEmail = async ({ email, token }) => {
+  email = String(email || "")
+    .trim()
+    .toLowerCase()
   const user = await User.findOne({ email })
   if (!user) throw Object.assign(new Error("Nevažeći token"), { status: 400 })
   const provided = String(token || "").trim()
@@ -95,6 +101,9 @@ export const verifyEmail = async ({ email, token }) => {
 }
 
 export const loginUser = async ({ email, password, ua, ip }) => {
+  email = String(email || "")
+    .trim()
+    .toLowerCase()
   const user = await User.findOne({ email })
   if (!user)
     throw Object.assign(new Error("Pogrešni kredencijali"), { status: 401 })
@@ -227,6 +236,9 @@ export const revokeAllSessions = async ({ userId }) => {
 }
 
 export const requestPasswordReset = async ({ email }) => {
+  email = String(email || "")
+    .trim()
+    .toLowerCase()
   const user = await User.findOne({ email })
   // uvijek vraćamo ok (bez otkrivanja da li email postoji)
   if (!user) return true
@@ -269,7 +281,14 @@ export const requestPasswordReset = async ({ email }) => {
 }
 
 export const resetPassword = async ({ email, token, newPassword }) => {
+  email = String(email || "")
+    .trim()
+    .toLowerCase()
   const user = await User.findOne({ email })
+  // Optional policy: successful password reset proves email ownership -> mark verified if not already
+  if (!user.emailVerifiedAt) {
+    user.emailVerifiedAt = new Date()
+  }
   const provided = String(token || "").trim()
   const tokenHash = sha256(provided)
   const legacyStored = String(user?.resetToken || "").trim()
@@ -303,6 +322,9 @@ export const resetPassword = async ({ email, token, newPassword }) => {
 }
 
 export const resendVerifyEmail = async ({ email }) => {
+  email = String(email || "")
+    .trim()
+    .toLowerCase()
   const user = await User.findOne({ email })
   // uvijek ok odgovor (ne otkrivamo postojanje), ali šaljemo samo ako je potrebna verifikacija
   if (!user || user.emailVerifiedAt) return true

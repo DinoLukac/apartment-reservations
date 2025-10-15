@@ -4,12 +4,7 @@ import { env } from "./config/env.js"
 import { connectDb } from "./config/db.js"
 import { startCron } from "./jobs/cron.js"
 import { fileURLToPath } from "url"
-import { publicRouter } from "./routes/public.js"
-import reservationRoutes from "./routes/reservations.js"
 const server = createServer(app)
-
-app.use("/api/public", publicRouter)
-app.use("/api/reservations", reservationRoutes)
 // Ensure we don't schedule cron jobs multiple times (e.g., on hot reload)
 let cronStarted = false
 function safeStartCron() {
@@ -22,6 +17,8 @@ function safeStartCron() {
     console.error("[cron] failed to start", err)
   }
 }
+
+app.set("trust proxy", 1) // required for Secure cookies behind Render
 
 const start = async () => {
   try {
